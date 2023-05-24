@@ -1,7 +1,12 @@
 require_relative '../../../services/otp_service'
 
 class Api::V1::UsersController < ApplicationController
-  before_action :user_params, only: [new]
+  before_action :user_params, except: [:index]
+
+  def index
+    @users = User.all
+    render json: { users: @users }, status: :ok
+  end
 
 	def new
     phone = request.query_parameters[:phone]
@@ -27,7 +32,7 @@ class Api::V1::UsersController < ApplicationController
     user_otp = params[:otp]
     user = User.find_by(phone: phone)
     
-    if user && user.otp_valid?(user_otp)
+    if user  && user.otp.present? && user.otp_valid?(user_otp)
       new_token = generate_user_token(user.id)
       user.otp.destroy
       
@@ -41,7 +46,8 @@ class Api::V1::UsersController < ApplicationController
   private
 
   def generate_user_token(user_id)
-    payload = { user_id: user_id, exp: Time.now + 1.day.to_i }
+    expiration_time = Time.now + 1.day
+    payload = { user_id: user_id, exp: expiration_time.to_i }
     jwt_token = JWT.encode(payload, ENV['SECRET_KEY_BASE'])
     jwt_token
   end
