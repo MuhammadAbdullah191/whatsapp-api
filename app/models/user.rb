@@ -1,5 +1,6 @@
 class User < ApplicationRecord
   has_one :otp
+  has_many :rooms
 
 	validates :phone,
             format: { with: /\A((\+92)?(0092)?(92)?(0)?)(3)([0-9]{9})\z/,

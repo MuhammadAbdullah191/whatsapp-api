@@ -3,6 +3,12 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       resources :users
+      resources :rooms do
+        resources :messages
+        collection do
+          get 'find_by_user_ids'
+        end
+      end
     end
     
   end
