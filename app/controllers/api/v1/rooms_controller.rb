@@ -49,7 +49,9 @@ class Api::V1::RoomsController < ApplicationController
       else
         render json: { error: 'Unable to create new room, please try again letter' }, status: :unprocessable_entity
       end
+
     end
+    
   end
   
   

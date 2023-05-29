@@ -15,8 +15,8 @@ class Api::V1::MessagesController < ApplicationController
     @message = @room.messages.new(message_params)
 
     if @message.save
-      # render json: @message, status: :created
-      ActionCable.server.broadcast "chat_channel_#{@message.room_id}",message: @message
+      @messages = @room.messages.all
+      ActionCable.server.broadcast "chat_channel_#{@message.room_id}",messages: @messages
     else
       render json: @message.errors, status: :unprocessable_entity
     end
