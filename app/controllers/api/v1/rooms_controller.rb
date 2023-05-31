@@ -18,6 +18,7 @@ class Api::V1::RoomsController < ApplicationController
     else
       render json: @room.errors, status: :unprocessable_entity
     end
+
   end
 
   def update
@@ -26,6 +27,7 @@ class Api::V1::RoomsController < ApplicationController
     else
       render json: @room.errors, status: :unprocessable_entity
     end
+
   end
 
   def destroy
@@ -65,6 +67,7 @@ class Api::V1::RoomsController < ApplicationController
 			render json: { error: 'Room not found' }, status: :not_found
 			return
 		end
+    
   end
 
   def room_params

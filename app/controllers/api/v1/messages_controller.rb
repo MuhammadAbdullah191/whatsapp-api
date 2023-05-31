@@ -3,7 +3,9 @@ class Api::V1::MessagesController < ApplicationController
   before_action :set_message, only: [:show, :update, :destroy]
 
   def index
-    @messages = @room.messages
+    total_messages = @room.messages.count
+    per_page = params[:per_page]
+    @messages = @room.messages.order(created_at: :desc).paginate(page: 1, per_page: per_page)
     render json: @messages
   end
 
@@ -15,11 +17,11 @@ class Api::V1::MessagesController < ApplicationController
     @message = @room.messages.new(message_params)
 
     if @message.save
-      @messages = @room.messages.all
-      ActionCable.server.broadcast "chat_channel_#{@message.room_id}",messages: @messages
+      ActionCable.server.broadcast "chat_channel_#{@message.room_id}",message: @message
     else
       render json: @message.errors, status: :unprocessable_entity
     end
+
   end
 
   def update
@@ -28,6 +30,7 @@ class Api::V1::MessagesController < ApplicationController
     else
       render json: @message.errors, status: :unprocessable_entity
     end
+
   end
 
   def destroy
@@ -44,6 +47,7 @@ class Api::V1::MessagesController < ApplicationController
 			render json: { error: 'Room not found' }, status: :not_found
 			return
 		end
+
   end
 
   def set_message
@@ -53,4 +57,5 @@ class Api::V1::MessagesController < ApplicationController
   def message_params
     params.require(:message).permit(:content, :user_id)
   end
+  
 end

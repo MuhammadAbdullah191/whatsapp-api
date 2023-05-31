@@ -42,6 +42,18 @@ class Api::V1::UsersController < ApplicationController
     else
       render json: { error: 'Invalid phone number or OTP' }, status: :unauthorized
     end
+    
+  end
+
+  def update
+    user = User.find(params[:id])
+    
+    if user.update(user_params)
+      render json: { user: user, message: 'User updated successfully' }, status: :ok
+    else
+      render json: { status: 'error', message: user.errors.full_messages.join(', ') }
+    end
+
   end
 
   def verify_user
@@ -65,7 +77,7 @@ class Api::V1::UsersController < ApplicationController
   end
 
   def user_params
-    params.require(:user).permit(:phone, :username, :status, :verified)
+    params.require(:user).permit(:phone, :username, :status, :avatar, :verified)
   end
 
   def generate_otp_code
