@@ -59,4 +59,8 @@ gem 'rack-cors'
 gem 'rotp'
 gem 'twilio-ruby', '~> 6.0.1'
 gem 'redis', '~> 4.0'
-gem 'will_paginate', '~> 3.3'                    
+gem 'will_paginate', '~> 3.3'  
+gem 'activestorage'
+gem 'mini_magick'
+gem "searchkick"
+gem "elasticsearch" 

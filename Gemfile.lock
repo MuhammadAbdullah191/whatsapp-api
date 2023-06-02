@@ -79,6 +79,14 @@ GEM
     dotenv-rails (2.8.1)
       dotenv (= 2.8.1)
       railties (>= 3.2)
+    elasticsearch (7.4.0)
+      elasticsearch-api (= 7.4.0)
+      elasticsearch-transport (= 7.4.0)
+    elasticsearch-api (7.4.0)
+      multi_json
+    elasticsearch-transport (7.4.0)
+      faraday
+      multi_json
     erubi (1.12.0)
     faraday (2.7.4)
       faraday-net_http (>= 2.0, < 3.1)
@@ -87,6 +95,7 @@ GEM
     ffi (1.15.5)
     globalid (1.1.0)
       activesupport (>= 5.0)
+    hashie (5.0.0)
     i18n (1.13.0)
       concurrent-ruby (~> 1.0)
     jbuilder (2.11.5)
@@ -107,10 +116,12 @@ GEM
     marcel (1.0.2)
     matrix (0.4.2)
     method_source (1.0.0)
+    mini_magick (4.11.0)
     mini_mime (1.1.2)
     mini_portile2 (2.8.2)
     minitest (5.18.0)
     msgpack (1.7.1)
+    multi_json (1.15.0)
     net-imap (0.3.4)
       date
       net-protocol
@@ -181,6 +192,9 @@ GEM
       sprockets (> 3.0)
       sprockets-rails
       tilt
+    searchkick (5.2.4)
+      activemodel (>= 5.2)
+      hashie
     selenium-webdriver (4.9.0)
       rexml (~> 3.2, >= 3.2.5)
       rubyzip (>= 1.2.2, < 3.0)
@@ -237,19 +251,23 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  activestorage
   bootsnap (>= 1.4.2)
   byebug
   capybara (>= 2.15)
   dotenv-rails
+  elasticsearch
   jbuilder (~> 2.7)
   jwt
   listen (~> 3.2)
+  mini_magick
   puma (~> 4.1)
   rack-cors
   rails (~> 6.0.6, >= 6.0.6.1)
   redis (~> 4.0)
   rotp
   sass-rails (>= 6)
+  searchkick
   selenium-webdriver
   spring
   spring-watcher-listen (~> 2.0.0)

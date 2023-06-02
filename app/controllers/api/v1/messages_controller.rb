@@ -4,8 +4,9 @@ class Api::V1::MessagesController < ApplicationController
 
   def index
     total_messages = @room.messages.count
-    per_page = params[:per_page]
-    @messages = @room.messages.order(created_at: :desc).paginate(page: 1, per_page: per_page)
+    per_page = 10
+    page = params[:page]
+    @messages = @room.messages.order(created_at: :desc).paginate(page: page, per_page: per_page)
     render json: @messages
   end
 

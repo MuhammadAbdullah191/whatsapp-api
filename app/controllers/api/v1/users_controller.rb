@@ -1,13 +1,20 @@
 require_relative '../../../services/otp_service'
 
 class Api::V1::UsersController < ApplicationController
-  before_action :user_params, except: [:index, :new, :verify_user]
+  before_action :user_params, except: [:index, :new, :verify_user, :create]
   skip_before_action :verify_token
 
   def index
-    @users = User.all
-    render json: { users: @users }, status: :ok
+    if params[:query].present?
+      @users = User.search(params[:query], fields: ['username', 'phone'], match: :word_start)
+    else
+      @users = User.search('*')
+    end
+    
+    users_with_avatar_url = @users.map { |user| user.as_json(methods: :avatar_url) }
+    render json: { users: users_with_avatar_url }, status: :ok
   end
+  
 
 	def new
     phone = request.query_parameters[:phone]
@@ -42,14 +49,19 @@ class Api::V1::UsersController < ApplicationController
     else
       render json: { error: 'Invalid phone number or OTP' }, status: :unauthorized
     end
-    
+
   end
 
   def update
     user = User.find(params[:id])
-    
+  
+    if params[:user][:avatar]
+      user.avatar.purge if user.avatar.attached?
+      user.avatar.attach(params[:user][:avatar])
+    end
+
     if user.update(user_params)
-      render json: { user: user, message: 'User updated successfully' }, status: :ok
+      render json: { user: user.as_json(methods: :avatar_url), message: 'User updated successfully' }, status: :ok
     else
       render json: { status: 'error', message: user.errors.full_messages.join(', ') }
     end
@@ -77,7 +89,7 @@ class Api::V1::UsersController < ApplicationController
   end
 
   def user_params
-    params.require(:user).permit(:phone, :username, :status, :avatar, :verified)
+    params.require(:user).permit(:phone, :username, :status, :verified, :avatar)
   end
 
   def generate_otp_code
