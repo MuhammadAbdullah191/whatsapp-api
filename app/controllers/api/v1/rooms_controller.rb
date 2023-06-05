@@ -1,5 +1,5 @@
 class Api::V1::RoomsController < ApplicationController
-	before_action :set_room, only: [:show, :edit, :update, :destroy]
+	before_action :set_room, only: [:show, :edi, :destroy]
 
   def index
     @rooms = Room.all
@@ -7,38 +7,8 @@ class Api::V1::RoomsController < ApplicationController
   end
 
   def show
-    render json: @room
-  end
-
-  def create
-    @room = Room.new(room_params)
-
-    if @room.save
-      render json: @room, status: :created
-    else
-      render json: @room.errors, status: :unprocessable_entity
-    end
-
-  end
-
-  def update
-    if @room.update(room_params)
-      render json: @room
-    else
-      render json: @room.errors, status: :unprocessable_entity
-    end
-
-  end
-
-  def destroy
-    @room.destroy
-    head :no_content
-  end
-
-  def find_by_user_ids
     user1_id = params[:user1_id].to_i
     user2_id = params[:user2_id].to_i
-  
     @room = Room.includes(:user1, :user2).find_by_users(user1_id, user2_id)
   
     if @room != []
@@ -53,11 +23,25 @@ class Api::V1::RoomsController < ApplicationController
       end
 
     end
-    
+
+  end
+
+  def create
+    @room = Room.new(room_params)
+
+    if @room.save
+      render json: @room, status: :created
+    else
+      render json: @room.errors, status: :unprocessable_entity
+    end
+
+  end
+
+  def destroy
+    @room.destroy
+    head :no_content
   end
   
-  
-
   private       
 
   def set_room

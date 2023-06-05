@@ -9,10 +9,6 @@ Rails.application.routes.draw do
       end
       resources :rooms do
         resources :messages
-        collection do
-          get 'find_by_user_ids'
-        end
-        
       end
 
     end

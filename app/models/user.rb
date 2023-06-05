@@ -10,12 +10,6 @@ class User < ApplicationRecord
 
   searchkick word_start: [:username, :phone]
 
-  def search_data
-    {
-      username: username,
-      phone: phone
-    }
-  end
 
   def avatar_url
     if avatar.attached?
@@ -28,16 +22,6 @@ class User < ApplicationRecord
 
   def otp_valid?(otp)
     otp.present? && otp == self.otp.code && self.otp.expiration_time > Time.now
-  end
-
-	def generate_token
-    payload = { user_id: id }
-    JWT.enode(payload, ENV['SECRET_KEY_BASE'], 'HS256')
-  end
-
-	def self.from_token(token)
-    decoded_token = JWT.decode(token, ENV['SECRET_KEY_BASE'], true, { algorithm: 'HS256' })
-    User.find(decoded_token.first['user_id'])
   end
 
 end

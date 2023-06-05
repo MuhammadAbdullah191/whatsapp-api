@@ -1,6 +1,5 @@
 class Api::V1::MessagesController < ApplicationController
 	before_action :set_room
-  before_action :set_message, only: [:show, :update, :destroy]
 
   def index
     total_messages = @room.messages.count
@@ -8,10 +7,6 @@ class Api::V1::MessagesController < ApplicationController
     page = params[:page]
     @messages = @room.messages.order(created_at: :desc).paginate(page: page, per_page: per_page)
     render json: @messages
-  end
-
-  def show
-    render json: @message
   end
 
   def create
@@ -25,20 +20,6 @@ class Api::V1::MessagesController < ApplicationController
 
   end
 
-  def update
-    if @message.update(message_params)
-      render json: @message
-    else
-      render json: @message.errors, status: :unprocessable_entity
-    end
-
-  end
-
-  def destroy
-    @message.destroy
-    head :no_content
-  end
-
   private
 
   def set_room
@@ -49,10 +30,6 @@ class Api::V1::MessagesController < ApplicationController
 			return
 		end
 
-  end
-
-  def set_message
-    @message = @room.messages.find(params[:id])
   end
 
   def message_params

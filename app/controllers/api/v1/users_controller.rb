@@ -1,7 +1,8 @@
 require_relative '../../../services/otp_service'
 
 class Api::V1::UsersController < ApplicationController
-  before_action :user_params, except: [:index, :new, :verify_user, :create]
+  before_action :set_user, only: [:update, :destroy]
+  before_action :user_params, except: [:index, :new, :verify_user, :create, :destroy]
   skip_before_action :verify_token
 
   def index
@@ -15,7 +16,6 @@ class Api::V1::UsersController < ApplicationController
     render json: { users: users_with_avatar_url }, status: :ok
   end
   
-
 	def new
     phone = request.query_parameters[:phone]
     @user = User.find_or_initialize_by(phone: phone)
@@ -39,13 +39,18 @@ class Api::V1::UsersController < ApplicationController
     phone = params[:phone]
     user_otp = params[:otp]
     user = User.find_by(phone: phone)
+
+    unless user
+      render json: { error: 'User not found' }, status: :not_found
+      return
+    end
     
     if user  && user.otp.present? && user.otp_valid?(user_otp)
       user.update(verified: true)
       new_token = generate_user_token(user)
       user.otp.destroy
       
-      render json: { message: 'Successfully Logged In', token: new_token, user: user }, status: :ok
+      render json: { message: 'Successfully Logged In', token: new_token, user: user.as_json(methods: :avatar_url) }, status: :ok
     else
       render json: { error: 'Invalid phone number or OTP' }, status: :unauthorized
     end
@@ -53,19 +58,21 @@ class Api::V1::UsersController < ApplicationController
   end
 
   def update
-    user = User.find(params[:id])
-  
     if params[:user][:avatar]
-      user.avatar.purge if user.avatar.attached?
-      user.avatar.attach(params[:user][:avatar])
+      @user.avatar.purge if @user.avatar.attached?
+      @user.avatar.attach(params[:user][:avatar])
     end
 
-    if user.update(user_params)
-      render json: { user: user.as_json(methods: :avatar_url), message: 'User updated successfully' }, status: :ok
+    if @user.update(user_params)
+      render json: { user: @user.as_json(methods: :avatar_url), message: 'User updated successfully' }, status: :ok
     else
-      render json: { status: 'error', message: user.errors.full_messages.join(', ') }
+      render json: { status: 'error', message: @user.errors.full_messages.join(', ') }
     end
+  end
 
+  def destroy
+    @user.avatar.purge if @user.avatar.attached?
+    render json: { user: @user.as_json(methods: :avatar_url), message: 'User updated successfully' }, status: :ok
   end
 
   def verify_user
@@ -80,6 +87,14 @@ class Api::V1::UsersController < ApplicationController
   end
   
   private
+
+  def set_user
+    @user = User.find_by(id: params[:id])
+
+    unless @user
+      render json: { error: 'User not found' }, status: :not_found
+    end
+  end
 
   def generate_user_token(user)
     expiration_time = Time.now + 1.day
