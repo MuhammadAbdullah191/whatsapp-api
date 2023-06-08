@@ -6,8 +6,7 @@ class Room < ApplicationRecord
 	validate :unique_room_between_users
 
 	scope :find_by_users, ->(user1_id, user2_id) do
-    where('(user1_id = :user1_id AND user2_id = :user2_id) OR (user1_id = :user2_id AND user2_id = :user1_id)',
-          user1_id: user1_id, user2_id: user2_id)
+    where(user1_id: user1_id, user2_id: user2_id).or(where(user1_id: user2_id, user2_id: user1_id))
   end
 
 	private

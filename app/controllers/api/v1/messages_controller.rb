@@ -1,4 +1,4 @@
-class Api::V1::MessagesController < ApplicationController
+class Api::V1::MessagesController < Api::V1::ApplicationController
 	before_action :set_room
 
   def index
@@ -13,7 +13,7 @@ class Api::V1::MessagesController < ApplicationController
     @message = @room.messages.new(message_params)
 
     if @message.save
-      ActionCable.server.broadcast "chat_channel_#{@message.room_id}",message: @message
+      ActionCable.server.broadcast "chat_channel_#{@message.room_id}", message: @message
     else
       render json: @message.errors, status: :unprocessable_entity
     end
@@ -26,7 +26,7 @@ class Api::V1::MessagesController < ApplicationController
     @room = Room.find_by_id(params[:room_id])
 
 		unless @room
-			render json: { error: 'Room not found' }, status: :not_found
+			render json: { message: 'Room not found' }, status: :not_found
 			return
 		end
 

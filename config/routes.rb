@@ -2,11 +2,7 @@ Rails.application.routes.draw do
   root 'pages#index'
   namespace :api do
     namespace :v1 do
-      resources :users do
-        collection do
-          get 'verify_user'
-        end
-      end
+      resources :users
       resources :rooms do
         resources :messages
       end

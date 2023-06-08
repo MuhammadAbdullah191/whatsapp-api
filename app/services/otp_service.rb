@@ -1,5 +1,7 @@
 # app/services/email_service.rb
 class OtpService
+	attr_reader :user
+	
   def initialize(user)
     @user = user
   end

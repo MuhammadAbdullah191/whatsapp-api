@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2023_05_30_165002) do
+ActiveRecord::Schema.define(version: 2023_06_07_032452) do
 
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
@@ -34,7 +34,7 @@ ActiveRecord::Schema.define(version: 2023_05_30_165002) do
   end
 
   create_table "messages", force: :cascade do |t|
-    t.text "content", null: false
+    t.string "content", limit: 2000, default: "", null: false
     t.integer "room_id", null: false
     t.integer "user_id", null: false
     t.datetime "created_at", precision: 6, null: false
@@ -45,8 +45,8 @@ ActiveRecord::Schema.define(version: 2023_05_30_165002) do
 
   create_table "otps", force: :cascade do |t|
     t.integer "user_id", null: false
-    t.string "code"
-    t.datetime "expiration_time"
+    t.string "code", limit: 6, default: "", null: false
+    t.datetime "expiration_time", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["code"], name: "index_otps_on_code"
@@ -63,9 +63,9 @@ ActiveRecord::Schema.define(version: 2023_05_30_165002) do
   end
 
   create_table "users", force: :cascade do |t|
-    t.string "phone"
-    t.string "username"
-    t.string "status"
+    t.string "phone", limit: 13, null: false
+    t.string "username", limit: 25, default: "", null: false
+    t.string "status", limit: 50, default: "", null: false
     t.boolean "verified"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false

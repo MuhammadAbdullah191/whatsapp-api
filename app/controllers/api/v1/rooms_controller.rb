@@ -1,5 +1,5 @@
-class Api::V1::RoomsController < ApplicationController
-	before_action :set_room, only: [:show, :edi, :destroy]
+class Api::V1::RoomsController < Api::V1::ApplicationController
+	before_action :set_room, only: [:destroy]
 
   def index
     @rooms = Room.all
@@ -9,9 +9,9 @@ class Api::V1::RoomsController < ApplicationController
   def show
     user1_id = params[:user1_id].to_i
     user2_id = params[:user2_id].to_i
-    @room = Room.includes(:user1, :user2).find_by_users(user1_id, user2_id)
+    @room = Room.find_by_users(user1_id, user2_id)
   
-    if @room != []
+    if @room.present?
       render json: @room[0].to_json(include: [:user1, :user2])
     else
       @room = Room.new(user1_id: user1_id, user2_id: user2_id)
@@ -19,7 +19,7 @@ class Api::V1::RoomsController < ApplicationController
       if @room.save
         render json: @room.to_json(include: [:user1, :user2]), status: :created
       else
-        render json: { error: 'Unable to create new room, please try again letter' }, status: :unprocessable_entity
+        render json: { message: 'Unable to create new room, please try again letter' }, status: :unprocessable_entity
       end
 
     end
@@ -48,7 +48,7 @@ class Api::V1::RoomsController < ApplicationController
     @room = Room.find_by_id(params[:id])
 
     unless @room
-			render json: { error: 'Room not found' }, status: :not_found
+			render json: { message: 'Room not found' }, status: :not_found
 			return
 		end
     

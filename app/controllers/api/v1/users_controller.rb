@@ -1,19 +1,18 @@
 require_relative '../../../services/otp_service'
 
-class Api::V1::UsersController < ApplicationController
+class Api::V1::UsersController < Api::V1::ApplicationController
   before_action :set_user, only: [:update, :destroy]
-  before_action :user_params, except: [:index, :new, :verify_user, :create, :destroy]
-  skip_before_action :verify_token
+  before_action :user_params, except: [:index, :new, :create, :destroy, :show]
+  skip_before_action :verify_token, except: [:index]
 
   def index
-    if params[:query].present?
-      @users = User.search(params[:query], fields: ['username', 'phone'], match: :word_start)
-    else
-      @users = User.search('*')
-    end
-    
+    @users = params[:query].present? ? User.search(params[:query], fields: ['username', 'phone'], match: :word_start) : User.search('*')
     users_with_avatar_url = @users.map { |user| user.as_json(methods: :avatar_url) }
     render json: { users: users_with_avatar_url }, status: :ok
+  end
+
+  def show
+    head :no_content
   end
   
 	def new
@@ -41,18 +40,18 @@ class Api::V1::UsersController < ApplicationController
     user = User.find_by(phone: phone)
 
     unless user
-      render json: { error: 'User not found' }, status: :not_found
+      render json: { message: 'User not found' }, status: :not_found
       return
     end
     
-    if user  && user.otp.present? && user.otp_valid?(user_otp)
+    if user.otp.present? && user.otp_valid?(user_otp)
       user.update(verified: true)
       new_token = generate_user_token(user)
       user.otp.destroy
       
       render json: { message: 'Successfully Logged In', token: new_token, user: user.as_json(methods: :avatar_url) }, status: :ok
     else
-      render json: { error: 'Invalid phone number or OTP' }, status: :unauthorized
+      render json: { message: 'Invalid phone number or OTP' }, status: :unauthorized
     end
 
   end
@@ -66,24 +65,13 @@ class Api::V1::UsersController < ApplicationController
     if @user.update(user_params)
       render json: { user: @user.as_json(methods: :avatar_url), message: 'User updated successfully' }, status: :ok
     else
-      render json: { status: 'error', message: @user.errors.full_messages.join(', ') }
+      render json: { message: @user.errors.full_messages.join(', ') }
     end
   end
 
   def destroy
     @user.avatar.purge if @user.avatar.attached?
     render json: { user: @user.as_json(methods: :avatar_url), message: 'User updated successfully' }, status: :ok
-  end
-
-  def verify_user
-    token = request.headers['Authorization']&.gsub(/^Bearer\s+/, '')
-    payload = decode_jwt_token(token)
-    if payload
-      render json: { message: 'User Verified', token: payload }, status: :ok
-    else
-      render json: { error: 'Invalid token' }, status: :unauthorized
-    end
-    
   end
   
   private
@@ -92,7 +80,7 @@ class Api::V1::UsersController < ApplicationController
     @user = User.find_by(id: params[:id])
 
     unless @user
-      render json: { error: 'User not found' }, status: :not_found
+      render json: { message: 'User not found' }, status: :not_found
     end
   end
 
@@ -105,23 +93,6 @@ class Api::V1::UsersController < ApplicationController
 
   def user_params
     params.require(:user).permit(:phone, :username, :status, :verified, :avatar)
-  end
-
-  def generate_otp_code
-    totp = ROTP::TOTP.new(ENV['OTP_SECRET_KEY'])
-  end
-
-  def decode_jwt_token(token)
-    secret_key = ENV['SECRET_KEY_BASE']
-  
-    begin
-      decoded_token = JWT.decode(token, secret_key, true, algorithm: 'HS256')
-      payload = decoded_token.first
-      return payload
-    rescue JWT::ExpiredSignature, JWT::VerificationError, JWT::DecodeError
-      return nil
-    end
-
   end
 
 end
