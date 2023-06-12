@@ -3,10 +3,10 @@ class Api::V1::MessagesController < Api::V1::ApplicationController
 
   def index
     total_messages = @room.messages.count
-    per_page = 10
+    per_page = 15
     page = params[:page]
     @messages = @room.messages.order(created_at: :desc).paginate(page: page, per_page: per_page)
-    render json: @messages
+    render json: { message: 'Messages retrieved successfully', messages: @messages }, status: :ok
   end
 
   def create
@@ -15,9 +15,8 @@ class Api::V1::MessagesController < Api::V1::ApplicationController
     if @message.save
       ActionCable.server.broadcast "chat_channel_#{@message.room_id}", message: @message
     else
-      render json: @message.errors, status: :unprocessable_entity
+      render json: { message: @message.errors }, status: :unprocessable_entity
     end
-
   end
 
   private
@@ -25,15 +24,14 @@ class Api::V1::MessagesController < Api::V1::ApplicationController
   def set_room
     @room = Room.find_by_id(params[:room_id])
 
-		unless @room
-			render json: { message: 'Room not found' }, status: :not_found
-			return
-		end
-
+    unless @room
+      render json: { message: 'Room not found' }, status: :not_found
+      return
+    end
   end
 
   def message_params
     params.require(:message).permit(:content, :user_id)
   end
-  
+
 end

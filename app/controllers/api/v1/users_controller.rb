@@ -6,7 +6,8 @@ class Api::V1::UsersController < Api::V1::ApplicationController
   skip_before_action :verify_token, except: [:index]
 
   def index
-    @users = params[:query].present? ? User.search(params[:query], fields: ['username', 'phone'], match: :word_start) : User.search('*')
+    @users = params[:query].present? ? User.search(params[:query], fields: ['username', 'phone'], match: :word_start).where(verified: true)
+    : User.where(verified: true)
     users_with_avatar_url = @users.map { |user| user.as_json(methods: :avatar_url) }
     render json: { users: users_with_avatar_url }, status: :ok
   end
@@ -65,7 +66,7 @@ class Api::V1::UsersController < Api::V1::ApplicationController
     if @user.update(user_params)
       render json: { user: @user.as_json(methods: :avatar_url), message: 'User updated successfully' }, status: :ok
     else
-      render json: { message: @user.errors.full_messages.join(', ') }
+      render json: { message: @user.errors.full_messages.to_sentence }, status: :unprocessable_entity
     end
   end
 

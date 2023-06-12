@@ -63,10 +63,10 @@ ActiveRecord::Schema.define(version: 2023_06_07_032452) do
   end
 
   create_table "users", force: :cascade do |t|
-    t.string "phone", limit: 13, null: false
+    t.string "phone", limit: 13, default: "", null: false
     t.string "username", limit: 25, default: "", null: false
     t.string "status", limit: 50, default: "", null: false
-    t.boolean "verified"
+    t.boolean "verified", default: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
   end

@@ -7,7 +7,7 @@ module Api
         token = request.headers['Authorization']&.gsub(/^Bearer\s+/, '')
         payload = decode_jwt_token(token)
         if !payload
-          render json: { error: 'Invalid token' }, status: :unauthorized
+          render json: { message: 'Invalid token' }, status: :unauthorized
         end
 
       end
