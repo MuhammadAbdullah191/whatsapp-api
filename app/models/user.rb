@@ -12,6 +12,7 @@ class User < ApplicationRecord
 
   searchkick word_start: [:username, :phone]
 
+  scope :find_by_phone, ->(phone) { find_by(phone: phone) }
 
   def avatar_url
     if avatar.attached?

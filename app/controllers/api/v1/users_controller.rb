@@ -2,35 +2,31 @@ require_relative '../../../services/otp_service'
 
 class Api::V1::UsersController < Api::V1::ApplicationController
   before_action :set_user, only: [:update, :destroy]
-  before_action :user_params, except: [:index, :new, :create, :destroy, :show]
+  before_action :user_params, except: [:index, :new, :create, :destroy]
   skip_before_action :verify_token, except: [:index]
 
   def index
     @users = params[:query].present? ? User.search(params[:query], fields: ['username', 'phone'], match: :word_start).where(verified: true)
-    : User.where(verified: true)
+    : 
+    User.where(verified: true)
     users_with_avatar_url = @users.map { |user| user.as_json(methods: :avatar_url) }
     render json: { users: users_with_avatar_url }, status: :ok
-  end
-
-  def show
-    head :no_content
   end
   
 	def new
     phone = request.query_parameters[:phone]
     @user = User.find_or_initialize_by(phone: phone)
+    otp_service = OtpService.new(@user)
 
-    if @user.save
-      otp_service = OtpService.new(@user)
-      
-      if otp_service.send_otp
-        render json: { message: 'OTP sent successfully' }, status: :ok
+    if @user.new_record?
+      if @user.save
+        send_otp(otp_service)
       else
-        render json: { message: 'Failed to send OTP' }, status: :unprocessable_entity
+        render json: { message: 'Please enter a valid phone number' }, status: :unprocessable_entity
       end
 
     else
-      render json: { message: 'please enter valid phone number' }, status: :unprocessable_entity
+      send_otp(otp_service)
     end
 
   end
@@ -38,7 +34,7 @@ class Api::V1::UsersController < Api::V1::ApplicationController
   def create
     phone = params[:phone]
     user_otp = params[:otp]
-    user = User.find_by(phone: phone)
+    user = User.find_by_phone(phone)
 
     unless user
       render json: { message: 'User not found' }, status: :not_found
@@ -46,11 +42,7 @@ class Api::V1::UsersController < Api::V1::ApplicationController
     end
     
     if user.otp.present? && user.otp_valid?(user_otp)
-      user.update(verified: true)
-      new_token = generate_user_token(user)
-      user.otp.destroy
-      
-      render json: { message: 'Successfully Logged In', token: new_token, user: user.as_json(methods: :avatar_url) }, status: :ok
+      login_user(user)
     else
       render json: { message: 'Invalid phone number or OTP' }, status: :unauthorized
     end
@@ -78,11 +70,32 @@ class Api::V1::UsersController < Api::V1::ApplicationController
   private
 
   def set_user
-    @user = User.find_by(id: params[:id])
+    @user = User.find_by_id(params[:id])
 
     unless @user
       render json: { message: 'User not found' }, status: :not_found
     end
+  end
+
+  def login_user(user)
+    user.update(verified: true)
+    new_token = generate_user_token(user)
+    user.otp.destroy
+  
+    render json: {
+      message: 'Successfully Logged In',
+      token: new_token,
+      user: user.as_json(methods: :avatar_url)
+    }, status: :ok
+  end
+
+  def send_otp(otp_service)
+    if otp_service.send_otp
+      render json: { message: 'OTP sent successfully' }, status: :ok
+    else
+      render json: { message: 'Failed to send OTP' }, status: :unprocessable_entity
+    end
+
   end
 
   def generate_user_token(user)

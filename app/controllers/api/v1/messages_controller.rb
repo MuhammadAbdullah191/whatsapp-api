@@ -1,11 +1,11 @@
 class Api::V1::MessagesController < Api::V1::ApplicationController
 	before_action :set_room
+  PER_PAGE = 15
 
   def index
     total_messages = @room.messages.count
-    per_page = 15
-    page = params[:page]
-    @messages = @room.messages.order(created_at: :desc).paginate(page: page, per_page: per_page)
+    page = params[:page] ? params[:page] : 1
+    @messages = @room.messages.order(created_at: :desc).paginate(page: page, per_page: PER_PAGE)
     render json: { message: 'Messages retrieved successfully', messages: @messages }, status: :ok
   end
 

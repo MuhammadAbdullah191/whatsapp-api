@@ -2,9 +2,9 @@ Rails.application.routes.draw do
   root 'pages#index'
   namespace :api do
     namespace :v1 do
-      resources :users
-      resources :rooms do
-        resources :messages
+      resources :users, except: [:show]
+      resources :rooms, except: [:update] do
+        resources :messages, only: [:index, :create]
       end
 
     end
