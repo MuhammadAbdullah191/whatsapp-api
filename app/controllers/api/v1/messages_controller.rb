@@ -1,6 +1,5 @@
 class Api::V1::MessagesController < Api::V1::ApplicationController
 	before_action :set_room
-  PER_PAGE = 15
 
   def index
     total_messages = @room.messages.count

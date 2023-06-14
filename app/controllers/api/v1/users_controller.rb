@@ -78,16 +78,22 @@ class Api::V1::UsersController < Api::V1::ApplicationController
   end
 
   def login_user(user)
-    user.update(verified: true)
-    new_token = generate_user_token(user)
-    user.otp.destroy
+    if user.update_columns(verified: true)
+      new_token = generate_user_token(user)
+      user.otp.destroy
   
-    render json: {
-      message: 'Successfully Logged In',
-      token: new_token,
-      user: user.as_json(methods: :avatar_url)
-    }, status: :ok
+      render json: {
+        message: 'Successfully Logged In',
+        token: new_token,
+        user: user.as_json(methods: :avatar_url)
+      }, status: :ok
+    else
+      render json: {
+        message: user.errors.full_messages
+      }, status: :unprocessable_entity
+    end
   end
+  
 
   def send_otp(otp_service)
     if otp_service.send_otp

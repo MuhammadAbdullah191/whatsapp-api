@@ -19,9 +19,9 @@ class AddConstraintsToUsers < ActiveRecord::Migration[6.0]
       CREATE TRIGGER users_update_username_constraint
       BEFORE UPDATE ON users
       FOR EACH ROW
-      WHEN (length(NEW.username) < 5 OR length(NEW.username) > 25)
+      WHEN (length(NEW.username) > 25)
       BEGIN
-        SELECT RAISE(ABORT, 'Username must be between 5 and 25 characters');
+        SELECT RAISE(ABORT, 'Username must be less then 25 characters');
       END;
     SQL
 
@@ -39,9 +39,9 @@ class AddConstraintsToUsers < ActiveRecord::Migration[6.0]
       CREATE TRIGGER users_update_status_constraint
       BEFORE UPDATE ON users
       FOR EACH ROW
-      WHEN (length(NEW.status) < 5 OR length(NEW.status) > 50)
+      WHEN (length(NEW.status) > 50)
       BEGIN
-        SELECT RAISE(ABORT, 'Status must be between 5 and 50 characters');
+        SELECT RAISE(ABORT, 'Status must be less then 50 characters');
       END;
     SQL
 

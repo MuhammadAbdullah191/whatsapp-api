@@ -2,6 +2,7 @@ module Api
   module V1
     class ApplicationController < ActionController::API
       before_action :verify_token
+      PER_PAGE = 15
 
       def verify_token
         token = request.headers['Authorization']&.gsub(/^Bearer\s+/, '')
