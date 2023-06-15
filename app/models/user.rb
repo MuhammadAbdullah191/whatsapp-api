@@ -12,19 +12,12 @@ class User < ApplicationRecord
 
   searchkick word_start: [:username, :phone]
 
-  scope :find_by_phone, ->(phone) { find_by(phone: phone) }
 
   def avatar_url
-    if avatar.attached?
-      Rails.application.routes.url_helpers.rails_blob_url(avatar, only_path: false)
-    else
-      nil
-    end
-    
+      Rails.application.routes.url_helpers.rails_blob_url(avatar, only_path: false) if avatar.attached?
   end
 
   def otp_valid?(otp)
     otp.present? && otp == self.otp.code && self.otp.expiration_time > Time.now
   end
-
 end
