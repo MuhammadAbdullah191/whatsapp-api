@@ -16,7 +16,5 @@ class Room < ApplicationRecord
        Room.exists?(user1_id: user2_id, user2_id: user1_id)
       errors.add(:base, 'A room already exists between these users.')
     end
-
   end
-
 end

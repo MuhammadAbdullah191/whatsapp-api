@@ -1,39 +1,34 @@
 require_relative '../../../services/otp_service'
 
 class Api::V1::UsersController < Api::V1::ApplicationController
-  before_action :set_user, only: [:update, :destroy]
-  before_action :user_params, except: [:index, :new, :create, :destroy]
-  skip_before_action :verify_token, except: [:index]
+  before_action :set_user, only: %i(update destroy)
+  before_action :user_params, except: %i(index new create destroy)
+  skip_before_action :verify_token, except: %i(index)
 
   def index
-    @users = params[:query].present? ? User.search(params[:query], fields: ['username', 'phone'], match: :word_start).where(verified: true)
+    query = user_params[:query]
+    @users = query.present? ? User.search(query, fields: ['username', 'phone'], match: :word_start).where(verified: true)
     : 
     User.where(verified: true)
-    users_with_avatar_url = @users.map { |user| user.as_json(methods: :avatar_url) }
+    users_with_avatar_url = @users.map { |user| UserSerializer.new(user).as_json }
     render json: { users: users_with_avatar_url }, status: :ok
   end
-  
-	def new
+
+  def new
     phone = request.query_parameters[:phone]
-    @user = User.find_or_initialize_by(phone: phone)
-    otp_service = OtpService.new(@user)
-
-    if @user.new_record?
-      if @user.save
-        send_otp(otp_service)
-      else
-        render json: { message: 'Please enter a valid phone number' }, status: :unprocessable_entity
-      end
-
+    otp_service = OtpService.new(phone)
+  
+    if otp_service.send_otp
+      render json: { message: 'OTP sent successfully' }, status: :ok
     else
-      send_otp(otp_service)
+      render json: { message: 'Failed to send OTP' }, status: :unprocessable_entity
     end
-
   end
+  
 
   def create
-    phone = params[:phone]
-    user_otp = params[:otp]
+    phone = user_params[:phone]
+    user_otp = user_params[:otp]
     user = User.find_by_phone(phone)
 
     unless user
@@ -46,17 +41,16 @@ class Api::V1::UsersController < Api::V1::ApplicationController
     else
       render json: { message: 'Invalid phone number or OTP' }, status: :unauthorized
     end
-
   end
 
   def update
-    if params[:user][:avatar]
+    if user_params[:avatar]
       @user.avatar.purge if @user.avatar.attached?
-      @user.avatar.attach(params[:user][:avatar])
+      @user.avatar.attach(user_params[:avatar])
     end
 
     if @user.update(user_params)
-      render json: { user: @user.as_json(methods: :avatar_url), message: 'User updated successfully' }, status: :ok
+      render json: { user: UserSerializer.new(@user).as_json, message: 'User updated successfully' }, status: :ok
     else
       render json: { message: @user.errors.full_messages.to_sentence }, status: :unprocessable_entity
     end
@@ -64,17 +58,12 @@ class Api::V1::UsersController < Api::V1::ApplicationController
 
   def destroy
     @user.avatar.purge if @user.avatar.attached?
-    render json: { user: @user.as_json(methods: :avatar_url), message: 'User updated successfully' }, status: :ok
+    render json: { user: UserSerializer.new(@user).as_json, message: 'User updated successfully' }, status: :ok
   end
   
   private
-
   def set_user
-    @user = User.find_by_id(params[:id])
-
-    unless @user
-      render json: { message: 'User not found' }, status: :not_found
-    end
+    @user = set_instance(user_params[:id], User)
   end
 
   def login_user(user)
@@ -85,23 +74,13 @@ class Api::V1::UsersController < Api::V1::ApplicationController
       render json: {
         message: 'Successfully Logged In',
         token: new_token,
-        user: user.as_json(methods: :avatar_url)
+        user: UserSerializer.new(user).as_json
       }, status: :ok
     else
       render json: {
         message: user.errors.full_messages
       }, status: :unprocessable_entity
     end
-  end
-  
-
-  def send_otp(otp_service)
-    if otp_service.send_otp
-      render json: { message: 'OTP sent successfully' }, status: :ok
-    else
-      render json: { message: 'Failed to send OTP' }, status: :unprocessable_entity
-    end
-
   end
 
   def generate_user_token(user)
@@ -112,7 +91,6 @@ class Api::V1::UsersController < Api::V1::ApplicationController
   end
 
   def user_params
-    params.require(:user).permit(:phone, :username, :status, :verified, :avatar)
+    params.permit(:id, :phone, :username, :status, :verified, :avatar, :query, :otp)
   end
-
 end

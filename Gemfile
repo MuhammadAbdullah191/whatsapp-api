@@ -64,3 +64,4 @@ gem 'activestorage'
 gem 'mini_magick'
 gem "searchkick"
 gem "elasticsearch" 
+gem "active_model_serializers"

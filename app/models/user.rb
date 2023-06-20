@@ -10,7 +10,7 @@ class User < ApplicationRecord
   validates :username, presence: true, length: { minimum: 5, maximum: 25 }, on: :update
   validates :status, presence: true, length: { minimum: 5, maximum: 50 }, on: :update 
 
-  searchkick word_start: [:username, :phone]
+  searchkick word_start: %i(username phone)
 
 
   def avatar_url

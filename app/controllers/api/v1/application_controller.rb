@@ -1,6 +1,7 @@
 module Api
   module V1
     class ApplicationController < ActionController::API
+      include Api::V1::Concerns::SetInstance
       before_action :verify_token
       PER_PAGE = 15
 
@@ -10,7 +11,6 @@ module Api
         if !payload
           render json: { message: 'Invalid token' }, status: :unauthorized
         end
-
       end
 
       def decode_jwt_token(token)
@@ -23,11 +23,7 @@ module Api
         rescue JWT::ExpiredSignature, JWT::VerificationError, JWT::DecodeError
           return nil
         end
-
       end
-
     end
-		
   end
-  
 end
