@@ -52,3 +52,16 @@ end
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
+
+gem 'jwt'
+gem 'dotenv-rails'
+gem 'rack-cors'
+gem 'rotp'
+gem 'twilio-ruby', '~> 6.0.1'
+gem 'redis', '~> 4.0'
+gem 'will_paginate', '~> 3.3'  
+gem 'activestorage'
+gem 'mini_magick'
+gem "searchkick"
+gem "elasticsearch" 
+gem "active_model_serializers"
